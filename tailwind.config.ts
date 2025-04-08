@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,13 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				dashboardly: {
+					primary: "#8B5CF6",
+					secondary: "#D8B4FE",
+					accent: "#D946EF",
+					light: "#F5F3FF",
+					dark: "#4C1D95"
 				}
 			},
 			borderRadius: {
