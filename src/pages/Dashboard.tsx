@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, LineChart, PieChart } from '@/components/ui/chart';
 import { Button } from '@/components/ui/button';
-import { FileUpload, LayoutDashboard, ArrowRight, BarChart2, LineChart as LineChartIcon, PieChartIcon, Plus } from 'lucide-react';
+import { Upload, LayoutDashboard, ArrowRight, BarChart2, LineChart as LineChartIcon, PieChartIcon, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
@@ -60,7 +59,7 @@ const Dashboard: React.FC = () => {
         <div className="flex space-x-2">
           <Link to="/eda">
             <Button className="bg-dashboardly-primary hover:bg-dashboardly-dark text-white">
-              <FileUpload className="mr-2 h-4 w-4" />
+              <Upload className="mr-2 h-4 w-4" />
               Upload Data
             </Button>
           </Link>
@@ -78,7 +77,7 @@ const Dashboard: React.FC = () => {
           <Card className="h-full transition-all duration-200 hover:shadow-lg border-2 hover:border-dashboardly-primary/50">
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center text-lg font-semibold text-dashboardly-primary group-hover:text-dashboardly-dark transition-colors">
-                <FileUpload className="mr-2 h-5 w-5" />
+                <Upload className="mr-2 h-5 w-5" />
                 EDA Generator
               </CardTitle>
               <CardDescription>Upload and analyze your data</CardDescription>
