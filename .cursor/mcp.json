@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "file": {
+      "command": "cat cursor.mdc"
+    }
+  }
+}

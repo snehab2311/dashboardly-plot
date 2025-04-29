@@ -1,0 +1,307 @@
+---
+description: UI/UX and user-flow modification
+globs: 
+alwaysApply: false
+---
+# Project Context: Dashboardly
+
+Dashboardly is a web application designed to simplify data analysis and visualization, making it more accessible to users who may not have strong technical skills or dedicated analytics teams.  The core goal is to bridge the gap between raw data and actionable insights, empowering individuals and small businesses to understand their information more effectively.
+
+**Overview**
+
+Dashboardly provides an intuitive platform for users to:
+
+* Import data from various sources.
+* Perform exploratory data analysis (EDA) to quickly understand data characteristics.
+* Create interactive dashboards with a variety of visualizations.
+* Manage and share dashboards.
+
+# Technical Details
+
+* **Frontend:** React, JavaScript, \[Add specific UI libraries, e.g., Material UI, etc.]
+* **Backend:** \[Specify backend language/framework, e.g., Python/Flask, Node.js/Express, etc.]
+* **Database:** Supabase
+* **Key Libraries/Technologies:** \[List any other significant libraries, e.g., charting libraries like Chart.js, data processing libraries, etc.]
+* **Project Structure:**
+    * `src/`: Contains the main application code.
+        * `components/`: React components for UI elements.
+        * `pages/`:  Different sections/views of the application.
+        * `api/`:  Code for interacting with the backend.
+        * `utils/`:  Helper functions.
+    * `public/`:  Static assets (e.g., HTML, CSS, images).
+
+# **Key Functionality**
+
+1.  **User Authentication:** Users can register, log in, and have different roles (admin, user) with varying access levels.
+2.  **Data Import:** Users upload data files (initially CSV).
+3.  **Exploratory Data Analysis (EDA):** The system automatically generates initial insights.
+4.  **Dashboard Creation:** Drag-and-drop interface for building interactive dashboards.
+5.  **Dashboard Management:** Saving, accessing, editing, and sharing dashboards.
+
+
+
+# **Key Development Tasks:**
+
+* Implementing new user creation (registration form).
+* Developing a welcome page for existing users.
+* Implementing user authentication.
+* Connecting to Supabase.
+* Developing advanced visualization options for the KPI dashboard builder.
+* Adding new chart visuals (e.g., bar charts, pie charts).
+* Improving data cleaning capabilities within the EDA module.
+* Implementing distribution and correlation analysis in EDA.
+* Supporting the uploading of different file types for EDA.
+* Implementing dashboard saving, access, editing, and deletion.
+* Implementing dashboard sharing via shareable links.
+* Implementing dashboard downloading in PDF or image format.
+	
+# Tools and Technologies
+
+•	Frontend
+
+1.	Core Framework/Library:
+•	React.js
+•	TypeScript 
+
+2.	UI Components & Design System:
+•	Custom UI components 
+•	Tailwind CSS 
+•	Lucide Icons 
+
+3.	Routing:
+•	React Router 
+
+4.	Data Visualization:
+•	Chart components 
+
+•	Backend
+
+Framework:
+•	FastAPI (Python-based web framework)
+•	Uvicorn (ASGI server implementation)
+•	Database
+
+•	SQLAlchemy ORM
+•	SQLite database (csv_analysis.db)
+
+•	Data Processing:
+•	Pandas for data analysis and manipulation
+•	NumPy for numerical computations
+•	Built-in data analysis features:
+•	Automatic data type detection
+•	Date/time parsing
+•	Statistical analysis
+•	Correlation analysis
+•	Missing value handling
+
+•	API Integration
+
+•	RESTful API endpoints:
+•	/upload-csv/ - File upload and analysis
+•	/analyses/ - Retrieve analysis results
+•	CORS middleware configured
+•	Error handling and validation
+•	JSON response serialization
+
+•	Design System
+
+1.	UI Framework:
+
+•	Using a modern, clean design system
+•	Custom components with consistent styling
+•	Color scheme
+Primary colors: Purple (#2D1B69)
+Accent colors: Pink/Purple gradients (#D946EF to #A855F7)
+White and transparent whites for text and overlays
+
+2.	Component Architecture:
+
+•	Modular component structure
+•	Responsive design (using Tailwind's responsive classes)
+•	Consistent spacing and layout patterns
+
+3.	Design Features:
+
+•	Dark theme
+•	Gradient effects
+•	Drop shadows and glows
+•	Smooth transitions and animations
+•	Collapsible sidebar
+•	Interactive elements with hover states
+
+# User Flow
+
+This document outlines the typical user flow within the "Dashboardly" web application, from initial signup to creating and sharing dashboards.
+
+A)	New User Registration
+
+1.	Start: User navigates to the "Dashboardly" website.
+2.	Signup: User clicks on the "Sign Up" button.
+3.	Registration Form: User fills in the registration form with their details (name, email, password).
+4.	Account Creation: User submits the form.
+5.	Verification (Optional):
+o	System sends a verification email to the user's provided email address.
+o	User clicks on the verification link in the email.
+6.	Login: User is redirected to the login page.
+7.	Welcome: User logs in with their credentials and is taken to the welcome page/dashboard.
+
+B)	Data Input and EDA
+
+1.	Upload Data: User clicks on the "Upload Data" button.
+2.	File Selection: User selects a CSV file from their computer.
+3.	Data Processing:
+o	System uploads and processes the data.
+o	System automatically profiles the data (detects data types, missing values).
+4.	EDA Overview: User views the initial EDA results:
+o	Summary statistics for numerical columns.
+o	Distribution plots.
+o	Correlation analysis.
+5.	EDA Insights: User reviews insights and recommendations generated by the system.
+
+C)	Dashboard Creation
+
+1.	Create Dashboard: User clicks on the "Create Dashboard" button.
+2.	Data Source Selection: User selects the uploaded data to use for the dashboard.
+3.	Chart Selection: User chooses a chart type (line chart, bar chart, pie chart, scatter plot, KPI card).
+4.	Data Mapping: User maps data columns to the chart's axes or KPI values.
+5.	Chart Customization: User customizes the chart's appearance (title, labels, colors, etc.).
+6.	Add More Charts: User can add more charts to the dashboard by repeating steps 3-5.
+7.	Filters (Optional): User adds filters to the dashboard to view specific data subsets.
+8.	Trend Lines (Optional): User adds trend lines to charts where applicable.
+9.	Dashboard Layout: User arranges the charts and KPIs on the dashboard.
+
+D)Dashboard Interaction and Saving
+
+1.	Dashboard Interaction: User interacts with the dashboard:
+o	Hovers over data points for details.
+o	Uses filters to explore the data.
+2.	Save Dashboard: User clicks on the "Save" button.
+3.	Dashboard Name: User enters a name for the dashboard.
+4.	Dashboard Saved: System saves the dashboard.
+5.	Dashboard Management and Sharing
+
+1.	Access Saved Dashboards: User navigates to "My Dashboards" section.
+2.	View Dashboard List: User sees a list of their saved dashboards.
+3.	Open Dashboard: User clicks on a dashboard to view it.
+4.	Edit Dashboard: User can edit the dashboard.
+5.	Delete Dashboard: User can delete the dashboard.
+6.	Share Dashboard: User clicks on the "Share" button.
+7.	Sharing Options: User chooses a sharing option:
+o	Share via link: System generates a shareable link.
+o	Embed dashboard: System provides embed code.
+8.	Dashboard Shared: User shares the dashboard with others.
+9.	Download Dashboard: User can download the dashboard in a specific format (PDF, image, etc.).
+
+E)User logs out
+
+
+# The "Dashboardly" project will encompass the following functionalities:
+
+•	2.1.1 Core Application Development
+o	Development of a web-based application with a user-friendly interface.
+o	Responsive design
+
+•	2.1.2 User Authentication and Management
+o	Implementation of user accounts with secure login and registration.
+o	User profile management (ability to update profile information).
+o	Subscription management functionality to handle different user tiers (Free, Individual, Team, White-Label).
+
+•	2.1.3 Data Input and Processing
+o	File upload capability, with initial support for CSV files.
+o	Data storage and management (In later stages)
+
+•	2.1.4 Exploratory Data Analysis (EDA) Module
+o	Automatic data profiling: detection of data types, missing values, and data quality issues.
+o	Generation of summary statistics for numerical data and categorical data.
+o	Creation of distribution plots (histograms, box plots) for numerical data.
+o	Correlation analysis (heatmaps, scatter plots) for numerical data.
+o	Insights and Recommendations
+
+•	2.1.5 KPI Dashboard Builder Module
+o	Data mapping: enabling users to assign data columns to chart axes and KPI calculations.
+o	Dashboard creation with a variety of chart types: line charts, bar charts, pie charts, scatter plots, and KPI cards.
+o	Chart customization options: titles, labels, and other visual elements.
+o	Filtering functionality to allow users to view specific data subsets (not available for Free tier)
+o	Trend line addition to charts.
+o	Dashboard saving and sharing (via links or embedding).
+
+•	2.1.6 Integrated Workflow
+o	Seamless transition between the EDA module and the KPI Dashboard Builder.
+o	Ability to select specific EDA outputs for inclusion in dashboards.
+
+•	2.1.7 Deployment
+o	Deployment of the application to a cloud hosting platform.
+
+2.2 Out of Scope
+
+The following functionalities are explicitly excluded from the initial scope of the "Dashboardly" project:
+
+•	2.2.1 Additional Data Source Integration
+o	Support for data sources beyond CSV files (e.g., databases, APIs) will be considered for future development phases.
+
+•	2.2.2 Advanced Analytics
+o	Advanced machine learning capabilities (e.g., predictive modeling, clustering) are not included in the MVP. Basic machine learning insights may be considered, but this is optional.
+
+•	2.2.3 Mobile Application
+o	Development of a dedicated mobile application (iOS and Android) is currently not in scope but will be considered for future development phases.
+
+•	2.2.4 Extensive Customization
+o	Highly customized or bespoke chart types and dashboard layouts beyond the provided options are not included.
+
+•	2.2.5 On-Premise Deployment
+o	Deployment to customer-managed infrastructure is not within the initial scope.
+
+# Functional Requirements
+
+•	3.1.1 User Management
+o	Users shall be able to create an account and log in securely.
+o	Users shall be able to manage their profile information.
+o	The system shall support different subscription tiers (Free, Individual, Team, White-Label) with varying feature access.
+
+•	3.1.2 Data Input
+o	Users shall be able to upload data from CSV files.
+o	The system shall validate uploaded data for format and integrity.
+
+•	3.1.3 Exploratory Data Analysis (EDA)
+o	The system shall automatically profile uploaded data, identifying data types and missing values.
+o	The system shall generate summary statistics for numerical data (mean, median, etc.).
+o	The system shall create distribution plots (histograms, box plots, density plots) for numerical data.
+o	The system shall calculate and visualize correlations between numerical data (heatmaps, scatter plots).
+
+•	3.1.4 KPI Dashboard Builder
+o	Users shall be able to map data columns to chart axes and KPI calculations.
+o	Users shall be able to create dashboards with various chart types (line, bar, pie, scatter, KPI cards).
+o	Users shall be able to customize chart appearance (titles, labels, size).
+o	Users shall be able to filter data within dashboards.
+o	Users shall be able to add trend lines to charts.
+o	Dashboards shall be interactive (hover-over details).
+o	Users shall be able to save and share dashboards.
+
+•	3.1.5 Integrated Workflow
+o	The system shall provide a seamless transition from EDA to dashboard creation.
+
+# Non-Functional Requirements
+
+•	3.2.1 Performance
+o	The application shall load quickly (within few seconds).
+o	The application shall be responsive to user interactions.
+
+•	3.2.2 Usability
+o	The application shall have a clean, modern, and intuitive user interface.
+o	The application shall be easy to navigate and use, even for non-technical users.
+
+•	3.2.3 Scalability
+o	The application shall be able to handle a growing number of users and data.
+
+•	3.2.4 Security
+o	User data shall be stored securely.
+o	The application shall protect against common web vulnerabilities (e.g., SQL injection, XSS).
+
+•	3.2.5 Reliability
+o	The application shall be reliable and available.
+
+•	3.2.6 Compatibility
+o	The application shall be compatible with major web browsers (Chrome, Firefox, Safari, Edge).
+o	The application shall be responsive across different screen sizes (desktop, tablet, mobile- In later phases).
+
+

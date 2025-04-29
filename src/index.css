@@ -1,0 +1,119 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 260 100% 98%;
+    --foreground: 260 10% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 260 10% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 260 10% 10%;
+
+    --primary: 260 83% 65%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 260 60% 85%;
+    --secondary-foreground: 260 60% 30%;
+
+    --muted: 260 20% 96%;
+    --muted-foreground: 260 10% 40%;
+
+    --accent: 294 76% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 260 20% 90%;
+    --input: 260 20% 90%;
+    --ring: 260 83% 65%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 260 50% 25%;
+    --sidebar-foreground: 260 40% 95%;
+    --sidebar-primary: 260 83% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 260 50% 35%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 260 40% 30%;
+    --sidebar-ring: 260 83% 65%;
+  }
+
+  .dark {
+    --background: 260 25% 10%;
+    --foreground: 260 10% 98%;
+
+    --card: 260 25% 12%;
+    --card-foreground: 260 10% 98%;
+
+    --popover: 260 25% 12%;
+    --popover-foreground: 260 10% 98%;
+
+    --primary: 260 83% 65%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 260 30% 20%;
+    --secondary-foreground: 260 10% 98%;
+
+    --muted: 260 30% 20%;
+    --muted-foreground: 260 10% 60%;
+
+    --accent: 294 76% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 260 30% 20%;
+    --input: 260 30% 20%;
+    --ring: 260 83% 65%;
+
+    --sidebar-background: 260 40% 15%;
+    --sidebar-foreground: 260 40% 95%;
+    --sidebar-primary: 260 83% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 260 30% 25%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 260 30% 25%;
+    --sidebar-ring: 260 83% 65%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.dashboard-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dashboard-scrollbar::-webkit-scrollbar-track {
+  @apply bg-muted rounded-full;
+}
+
+.dashboard-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-primary/50 rounded-full hover:bg-primary/70 transition-colors;
+}
+
+.dashboard-card {
+  @apply bg-white rounded-lg shadow-md border border-border p-4 hover:shadow-lg transition-shadow;
+}
+
+.chart-container {
+  width: 100%;
+  height: 100%;
+  min-height: 250px;
+}
