@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Chart as ChartJS,
@@ -12,6 +11,7 @@ import {
   Tooltip,
   Legend,
   Filler,
+  ScatterController,
   ChartOptions,
   ChartData,
 } from 'chart.js';
@@ -28,7 +28,8 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  Filler
+  Filler,
+  ScatterController
 );
 
 interface ChartProps {
