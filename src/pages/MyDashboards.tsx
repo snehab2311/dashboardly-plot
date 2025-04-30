@@ -17,82 +17,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useTheme } from 'next-themes';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
-// Sample dashboard data
-const sampleDashboards = [
-  {
-    id: '1',
-    title: 'Sales Performance',
-    description: 'Monthly sales performance dashboard with KPIs',
-    created: '2023-04-01T12:00:00Z',
-    updated: '2023-04-08T15:30:00Z',
-    favorite: true,
-    shared: true,
-    thumbnail: 'dashboard-1.jpg',
-    owner: 'You',
-    charts: 7,
-  },
-  {
-    id: '2',
-    title: 'Customer Analytics',
-    description: 'Customer segmentation and behavior analysis',
-    created: '2023-03-15T09:45:00Z',
-    updated: '2023-04-05T11:20:00Z',
-    favorite: false,
-    shared: true,
-    thumbnail: 'dashboard-2.jpg',
-    owner: 'You',
-    charts: 5,
-  },
-  {
-    id: '3',
-    title: 'Marketing Campaign Results',
-    description: 'Performance metrics for recent marketing campaigns',
-    created: '2023-03-28T14:30:00Z',
-    updated: '2023-04-07T10:15:00Z',
-    favorite: true,
-    shared: false,
-    thumbnail: 'dashboard-3.jpg',
-    owner: 'You',
-    charts: 6,
-  },
-  {
-    id: '4',
-    title: 'Inventory Overview',
-    description: 'Stock levels and inventory movement analysis',
-    created: '2023-03-20T08:15:00Z',
-    updated: '2023-04-02T16:45:00Z',
-    favorite: false,
-    shared: false,
-    thumbnail: 'dashboard-4.jpg',
-    owner: 'You',
-    charts: 4,
-  },
-  {
-    id: '5',
-    title: 'Regional Performance',
-    description: 'Sales and performance by geographic region',
-    created: '2023-04-03T11:30:00Z',
-    updated: '2023-04-06T09:20:00Z',
-    favorite: false,
-    shared: true,
-    thumbnail: 'dashboard-5.jpg',
-    owner: 'Alex Chen',
-    charts: 8,
-  },
-  {
-    id: '6',
-    title: 'Product Analysis',
-    description: 'Product performance and category analysis',
-    created: '2023-03-25T13:10:00Z',
-    updated: '2023-04-04T14:50:00Z',
-    favorite: true,
-    shared: true,
-    thumbnail: 'dashboard-6.jpg',
-    owner: 'Sarah Johnson',
-    charts: 5,
-  },
-];
-
 const MyDashboards: React.FC = () => {
   const { theme, setTheme } = useTheme();
   // Load dashboards from localStorage if available, else use empty array
@@ -106,7 +30,7 @@ const MyDashboards: React.FC = () => {
         console.error('Error parsing saved dashboards:', error);
       }
     }
-    return []; // Return empty array instead of sample dashboards
+    return [];
   };
 
   const [dashboards, setDashboards] = useState(getInitialDashboards());
