@@ -95,16 +95,18 @@ const sampleDashboards = [
 
 const MyDashboards: React.FC = () => {
   const { theme, setTheme } = useTheme();
-  // Load dashboards from localStorage if available, else use sampleDashboards
+  // Load dashboards from localStorage if available, else use empty array
   const getInitialDashboards = () => {
     const saved = localStorage.getItem('dashboards');
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      } catch {}
+        if (Array.isArray(parsed)) return parsed;
+      } catch (error) {
+        console.error('Error parsing saved dashboards:', error);
+      }
     }
-    return sampleDashboards;
+    return []; // Return empty array instead of sample dashboards
   };
 
   const [dashboards, setDashboards] = useState(getInitialDashboards());
