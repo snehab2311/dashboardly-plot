@@ -55,7 +55,9 @@ app.add_middleware(
         "http://localhost:3000", 
         "http://127.0.0.1:8080", 
         "http://127.0.0.1:3000",
-        "https://dashboardly-plot.vercel.app"  # Added Vercel deployment URL
+        "https://dashboardly-plot.vercel.app",  # Production URL
+        "https://dashboardly-plot-git-newdb-snehas-projects-5cf53f76.vercel.app",  # Preview URL
+        "https://dashboardly-plot-rjenm5hg6-snehas-projects-5cf53f76.vercel.app"  # Additional preview URL
     ],
     allow_credentials=True,
     allow_methods=["*"],
