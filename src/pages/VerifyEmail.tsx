@@ -8,68 +8,54 @@ const VerifyEmail = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [verificationError, setVerificationError] = useState<string | null>(null);
-  const [isVerifying, setIsVerifying] = useState(true);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [verificationStatus, setVerificationStatus] = useState<'pending' | 'success' | 'failed'>('pending');
 
   useEffect(() => {
     const handleEmailVerification = async () => {
       try {
-        // Debug logging
-        console.log('Verification page loaded');
-        console.log('Current URL:', window.location.href);
-        console.log('Location:', {
-          pathname: location.pathname,
-          search: location.search,
-          hash: location.hash
-        });
+        setIsVerifying(true);
+        
+        // Get the current session to check if verification was successful
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        console.log('Current session:', session);
+        console.log('Session error:', sessionError);
 
-        // Parse the URL to get the token
-        const fullUrl = window.location.href;
-        const hashIndex = fullUrl.indexOf('#');
-        const searchIndex = fullUrl.indexOf('?');
-        
-        let token = '';
-        
-        // Try to get token from different parts of the URL
-        if (hashIndex !== -1) {
-          const hashPart = fullUrl.slice(hashIndex + 1);
-          const hashParams = new URLSearchParams(hashPart);
-          token = hashParams.get('access_token') || '';
-        }
-        
-        if (!token && searchIndex !== -1) {
-          const searchPart = fullUrl.slice(searchIndex + 1);
-          const searchParams = new URLSearchParams(searchPart);
-          token = searchParams.get('token') || searchParams.get('access_token') || '';
-        }
-
-        if (!token) {
-          console.error('No token found in URL');
-          setVerificationError('Verification token not found. Please try signing up again.');
-          setIsVerifying(false);
+        if (session) {
+          console.log('User is authenticated:', session.user);
+          setVerificationStatus('success');
           return;
         }
 
-        console.log('Found token, attempting verification...');
-
-        // Try to verify with Supabase
-        const { data, error } = await supabase.auth.verifyOtp({
-          token_hash: token,
-          type: 'signup'
-        });
-
-        console.log('Verification response:', { data, error });
-
-        if (error) {
-          console.error('Verification error:', error);
-          setVerificationError(error.message);
-        } else {
-          console.log('Verification successful');
+        // If no session, check if we're in the verification process
+        const params = new URLSearchParams(window.location.search);
+        const isVerifying = params.get('redirect_type') === 'signup';
+        
+        if (!isVerifying) {
+          console.log('Not in verification process');
+          return;
         }
 
-        setIsVerifying(false);
+        // Give Supabase a moment to process the verification
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Check session again
+        const { data: { session: updatedSession } } = await supabase.auth.getSession();
+        
+        if (updatedSession) {
+          console.log('Verification successful:', updatedSession.user);
+          setVerificationStatus('success');
+        } else {
+          console.log('Verification failed: No session after redirect');
+          setVerificationError('Verification failed. Please try signing up again.');
+          setVerificationStatus('failed');
+        }
       } catch (error) {
         console.error('Verification error:', error);
         setVerificationError('An unexpected error occurred during verification');
+        setVerificationStatus('failed');
+      } finally {
         setIsVerifying(false);
       }
     };
@@ -98,26 +84,47 @@ const VerifyEmail = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
-            {verificationError ? 'Verification Failed' : 'Successful Verification'}
+            {verificationStatus === 'pending' && !verificationError && 'Email Verification'}
+            {verificationStatus === 'success' && 'Verification Successful'}
+            {(verificationStatus === 'failed' || verificationError) && 'Verification Failed'}
           </CardTitle>
           <CardDescription className="text-center">
-            {verificationError 
-              ? `Error: ${verificationError}`
-              : 'Your email has been verified successfully!'}
+            {verificationStatus === 'pending' && !verificationError && 
+              'Please use the verification link sent to your email'}
+            {verificationStatus === 'success' && 
+              'Your email has been verified successfully!'}
+            {verificationError && 
+              `Error: ${verificationError}`}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center space-y-4">
-          <div className="text-center text-sm text-gray-600">
-            {verificationError 
-              ? 'Please try signing up again'
-              : 'You can now sign in to your account'}
-          </div>
-          <Button
-            onClick={() => navigate(verificationError ? '/signup' : '/signin')}
-            className="w-full"
-          >
-            {verificationError ? 'Back to Sign Up' : 'Continue to Sign In'}
-          </Button>
+          {(verificationStatus === 'failed' || verificationError) && (
+            <>
+              <div className="text-center text-sm text-gray-600">
+                Please try signing up again
+              </div>
+              <Button
+                onClick={() => navigate('/signup')}
+                className="w-full"
+              >
+                Back to Sign Up
+              </Button>
+            </>
+          )}
+          
+          {verificationStatus === 'success' && (
+            <>
+              <div className="text-center text-sm text-gray-600">
+                You can now sign in to your account
+              </div>
+              <Button
+                onClick={() => navigate('/signin')}
+                className="w-full"
+              >
+                Continue to Sign In
+              </Button>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

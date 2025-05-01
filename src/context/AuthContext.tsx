@@ -48,14 +48,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         password,
         options: {
-          emailRedirectTo: `${currentUrl}/verify-email#signup`,
+          emailRedirectTo: `${currentUrl}/verify-email?redirect_type=signup`,
           data: {
-            email_confirm: true
+            email_confirm: true,
+            redirect_url: `${currentUrl}/verify-email`
           }
         }
       });
 
-      console.log('Signup attempt with redirect URL:', `${currentUrl}/verify-email#signup`);
+      console.log('Signup attempt with redirect URL:', `${currentUrl}/verify-email?redirect_type=signup`);
       console.log('Supabase signup response:', { data, error });
 
       if (error) {
