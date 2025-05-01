@@ -44,7 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/verify-email`,
+          emailRedirectTo: `${import.meta.env.VITE_SITE_URL || window.location.origin}/verify-email`,
           data: {
             email_confirm: true
           }
