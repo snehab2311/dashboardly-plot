@@ -15,28 +15,36 @@ const VerifyEmail = () => {
       try {
         // Debug logging
         console.log('Verification page loaded');
-        console.log('Full URL:', window.location.href);
-        console.log('Hash:', location.hash);
-        console.log('Search params:', location.search);
-        console.log('Pathname:', location.pathname);
+        console.log('Current URL:', window.location.href);
+        console.log('Location:', {
+          pathname: location.pathname,
+          search: location.search,
+          hash: location.hash
+        });
 
-        // Get the token from URL
-        const hashParams = new URLSearchParams(location.hash.replace(/^#/, ''));
-        const searchParams = new URLSearchParams(location.search);
+        // Parse the URL to get the token
+        const fullUrl = window.location.href;
+        const hashIndex = fullUrl.indexOf('#');
+        const searchIndex = fullUrl.indexOf('?');
         
-        // Check all possible token locations
-        const token = hashParams.get('access_token') || 
-                     searchParams.get('token') || 
-                     searchParams.get('access_token');
+        let token = '';
+        
+        // Try to get token from different parts of the URL
+        if (hashIndex !== -1) {
+          const hashPart = fullUrl.slice(hashIndex + 1);
+          const hashParams = new URLSearchParams(hashPart);
+          token = hashParams.get('access_token') || '';
+        }
+        
+        if (!token && searchIndex !== -1) {
+          const searchPart = fullUrl.slice(searchIndex + 1);
+          const searchParams = new URLSearchParams(searchPart);
+          token = searchParams.get('token') || searchParams.get('access_token') || '';
+        }
 
         if (!token) {
-          console.error('No token found in URL. Debug info:', {
-            fullUrl: window.location.href,
-            hash: location.hash,
-            search: location.search,
-            pathname: location.pathname
-          });
-          setVerificationError('No verification token found in URL');
+          console.error('No token found in URL');
+          setVerificationError('Verification token not found. Please try signing up again.');
           setIsVerifying(false);
           return;
         }
@@ -52,10 +60,10 @@ const VerifyEmail = () => {
         console.log('Verification response:', { data, error });
 
         if (error) {
-          console.error('Verification failed:', error);
+          console.error('Verification error:', error);
           setVerificationError(error.message);
         } else {
-          console.log('Verification successful:', data);
+          console.log('Verification successful');
         }
 
         setIsVerifying(false);
@@ -66,6 +74,7 @@ const VerifyEmail = () => {
       }
     };
 
+    // Run verification when component mounts
     handleEmailVerification();
   }, [location]);
 
@@ -76,7 +85,7 @@ const VerifyEmail = () => {
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">Verifying Email</CardTitle>
             <CardDescription className="text-center">
-              Please wait while we verify your email...
+              Please wait while we verify your email address...
             </CardDescription>
           </CardHeader>
         </Card>

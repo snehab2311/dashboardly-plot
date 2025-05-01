@@ -227,6 +227,7 @@ const EDAGenerator: React.FC = () => {
 
       // Use environment variable for backend URL
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+      console.log('Backend URL:', backendUrl); // Add this line for debugging
       const response = await fetch(`${backendUrl}/upload-file/`, {
         method: 'POST',
         headers: {
