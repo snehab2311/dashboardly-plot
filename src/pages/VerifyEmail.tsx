@@ -13,43 +13,55 @@ const VerifyEmail = () => {
   useEffect(() => {
     const handleEmailVerification = async () => {
       try {
-        console.log('Current URL:', window.location.href);
-        console.log('Location state:', location);
+        // Debug logging
+        console.log('Verification page loaded');
+        console.log('Full URL:', window.location.href);
+        console.log('Hash:', location.hash);
+        console.log('Search params:', location.search);
+        console.log('Pathname:', location.pathname);
 
-        // Get the token from various possible locations
-        const hashParams = new URLSearchParams(location.hash.substring(1));
+        // Get the token from URL
+        const hashParams = new URLSearchParams(location.hash.replace(/^#/, ''));
         const searchParams = new URLSearchParams(location.search);
         
+        // Check all possible token locations
         const token = hashParams.get('access_token') || 
                      searchParams.get('token') || 
                      searchParams.get('access_token');
 
         if (!token) {
-          console.error('No token found. URL parts:', {
+          console.error('No token found in URL. Debug info:', {
+            fullUrl: window.location.href,
             hash: location.hash,
             search: location.search,
             pathname: location.pathname
           });
-          setVerificationError('No verification token found');
+          setVerificationError('No verification token found in URL');
           setIsVerifying(false);
           return;
         }
 
+        console.log('Found token, attempting verification...');
+
         // Try to verify with Supabase
-        const { error } = await supabase.auth.verifyOtp({
+        const { data, error } = await supabase.auth.verifyOtp({
           token_hash: token,
           type: 'signup'
         });
 
+        console.log('Verification response:', { data, error });
+
         if (error) {
-          console.error('Verification error:', error);
+          console.error('Verification failed:', error);
           setVerificationError(error.message);
+        } else {
+          console.log('Verification successful:', data);
         }
 
         setIsVerifying(false);
       } catch (error) {
         console.error('Verification error:', error);
-        setVerificationError('An error occurred during verification');
+        setVerificationError('An unexpected error occurred during verification');
         setIsVerifying(false);
       }
     };
