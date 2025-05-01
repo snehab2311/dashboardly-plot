@@ -12,19 +12,28 @@ const VerifyEmail = () => {
   useEffect(() => {
     const handleEmailVerification = async () => {
       try {
-        // Get the access_token from the URL hash
+        // Try to get token from both hash and search params
         const hashParams = new URLSearchParams(location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
+        const searchParams = new URLSearchParams(location.search);
         
-        if (!accessToken) {
+        // Check both hash and query parameters for the token
+        const token = hashParams.get('access_token') || 
+                     searchParams.get('token') || 
+                     searchParams.get('access_token');
+
+        if (!token) {
+          console.error('No token found in URL');
+          console.log('URL:', window.location.href);
+          console.log('Hash:', location.hash);
+          console.log('Search:', location.search);
           setVerificationError('No verification token found');
           return;
         }
 
-        // Set the access token in Supabase
+        // Verify the token
         const { error } = await supabase.auth.verifyOtp({
-          token_hash: accessToken,
-          type: 'email'
+          token_hash: token,
+          type: 'signup'
         });
 
         if (error) {
@@ -60,7 +69,7 @@ const VerifyEmail = () => {
               : 'You can now sign in to your account'}
           </div>
           <Button
-            onClick={() => navigate('/signin')}
+            onClick={() => navigate(verificationError ? '/signup' : '/signin')}
             className="w-full"
           >
             {verificationError ? 'Back to Sign Up' : 'Continue to Sign In'}
