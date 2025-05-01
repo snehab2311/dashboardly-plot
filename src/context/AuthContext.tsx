@@ -39,25 +39,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string) => {
     try {
-      // Get the site URL, ensuring it doesn't end with a slash
-      const siteUrl = import.meta.env.VITE_SITE_URL?.replace(/\/$/, '') || window.location.origin;
-      const redirectTo = `${siteUrl}/verify-email#signup`;
-      
-      console.log('Using redirect URL:', redirectTo);
+      // Get the current site URL based on where the app is running
+      const currentUrl = window.location.origin;
+      console.log('Current origin:', currentUrl);
       
       // Sign up with Supabase
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: redirectTo,
+          emailRedirectTo: `${currentUrl}/verify-email#signup`,
           data: {
             email_confirm: true
           }
         }
       });
 
-      console.log('Signup attempt with redirect URL:', redirectTo);
+      console.log('Signup attempt with redirect URL:', `${currentUrl}/verify-email#signup`);
       console.log('Supabase signup response:', { data, error });
 
       if (error) {
