@@ -287,41 +287,165 @@ async def upload_file(file: UploadFile = File(...)):
             insights = []
             recommendations = []
             
-            # Analyze categorical columns
+            # Numerical Column Analysis
+            if len(numeric_cols) > 0:
+                for col in numeric_cols:
+                    col_insights = {}
+                    
+                    # Range and Outliers Analysis
+                    q1 = df[col].quantile(0.25)
+                    q3 = df[col].quantile(0.75)
+                    iqr = q3 - q1
+                    lower_bound = q1 - 1.5 * iqr
+                    upper_bound = q3 + 1.5 * iqr
+                    outliers = df[(df[col] < lower_bound) | (df[col] > upper_bound)][col]
+                    
+                    if len(outliers) > 0:
+                        outlier_percentage = (len(outliers) / len(df)) * 100
+                        insights.append({
+                            "title": f"Outliers in {col}",
+                            "description": f"Found {len(outliers)} outliers ({outlier_percentage:.1f}% of data) in {col}. " +
+                                         f"These values fall outside the typical range of {lower_bound:.2f} to {upper_bound:.2f}. " +
+                                         f"In real-world terms, these might represent exceptional cases that need investigation."
+                        })
+                    
+                    # Distribution Shape Analysis
+                    skewness = df[col].skew()
+                    kurtosis = df[col].kurtosis()
+                    
+                    distribution_desc = ""
+                    if abs(skewness) < 0.5:
+                        distribution_desc = "approximately normal (symmetric)"
+                    elif skewness > 0:
+                        distribution_desc = f"right-skewed (skewness: {skewness:.2f})"
+                    else:
+                        distribution_desc = f"left-skewed (skewness: {skewness:.2f})"
+                        
+                    if kurtosis > 1:
+                        distribution_desc += " with heavy tails"
+                    elif kurtosis < -1:
+                        distribution_desc += " with light tails"
+                        
+                    insights.append({
+                        "title": f"Distribution Pattern of {col}",
+                        "description": f"The distribution is {distribution_desc}. " +
+                                     f"Most values fall between {q1:.2f} and {q3:.2f}, " +
+                                     f"with a median of {df[col].median():.2f}."
+                    })
+                    
+                    # Multi-modal Check using KDE
+                    try:
+                        from scipy.stats import gaussian_kde
+                        from scipy.signal import find_peaks
+                        
+                        kde = gaussian_kde(df[col].dropna())
+                        x_range = np.linspace(df[col].min(), df[col].max(), 200)
+                        y = kde(x_range)
+                        peaks, _ = find_peaks(y)
+                        
+                        if len(peaks) > 1:
+                            peak_values = x_range[peaks]
+                            insights.append({
+                                "title": f"Multiple Peaks Detected in {col}",
+                                "description": f"Found {len(peaks)} distinct peaks in the distribution at approximately " +
+                                             f"{', '.join([f'{v:.2f}' for v in peak_values])}. " +
+                                             f"This suggests distinct groups or patterns in your {col} data."
+                            })
+                    except Exception as e:
+                        print(f"Error in multi-modal analysis: {str(e)}")
+
+            # Categorical Column Analysis
             if len(categorical_cols) > 0:
                 for col in categorical_cols:
                     value_counts = df[col].value_counts()
-                    top_value = value_counts.index[0]
-                    top_percentage = (value_counts.iloc[0] / len(df)) * 100
+                    total_count = len(df)
                     
-                    if top_percentage > 30:  # Significant dominance
+                    # Most frequent categories
+                    top_categories = value_counts.head(3)
+                    top_categories_desc = ", ".join([
+                        f"'{cat}' ({(count/total_count*100):.1f}%)"
+                        for cat, count in top_categories.items()
+                    ])
+                    
+                    insights.append({
+                        "title": f"Category Distribution in {col}",
+                        "description": f"The most common categories are: {top_categories_desc}. "
+                    })
+                    
+                    # Rare categories analysis
+                    rare_threshold = 0.05  # 5%
+                    rare_categories = value_counts[value_counts/total_count < rare_threshold]
+                    if len(rare_categories) > 0:
+                        rare_total_percentage = (rare_categories.sum()/total_count*100)
                         insights.append({
-                            "title": f"Dominant Category in {col}",
-                            "description": f"'{top_value}' accounts for {top_percentage:.1f}% of values in {col}"
+                            "title": f"Rare Categories in {col}",
+                            "description": f"Found {len(rare_categories)} rare categories (each <5% of data) in {col}, " +
+                                         f"collectively representing {rare_total_percentage:.1f}% of all data. " +
+                                         f"Consider if these rare categories need special attention or could be grouped."
                         })
-            
-            # Analyze numeric columns
-            if len(numeric_cols) > 0:
-                for col in numeric_cols:
-                    # Check for skewness
-                    skewness = df[col].skew()
-                    if abs(skewness) > 1:
+
+            # Correlation Analysis
+            if len(numeric_cols) >= 2:
+                corr_matrix = df[numeric_cols].corr()
+                strong_correlations = []
+                multicollinearity_groups = []
+                
+                for i in range(len(numeric_cols)):
+                    for j in range(i+1, len(numeric_cols)):
+                        correlation = corr_matrix.iloc[i, j]
+                        if abs(correlation) > 0.7:
+                            strong_correlations.append({
+                                'col1': numeric_cols[i],
+                                'col2': numeric_cols[j],
+                                'correlation': correlation
+                            })
+                
+                if strong_correlations:
+                    for corr in strong_correlations:
                         insights.append({
-                            "title": f"Distribution Pattern in {col}",
-                            "description": f"The data is {'positively' if skewness > 0 else 'negatively'} skewed"
+                            "title": f"Strong Correlation: {corr['col1']} & {corr['col2']}",
+                            "description": f"Found a {abs(corr['correlation']):.2f} " +
+                                         f"{'positive' if corr['correlation'] > 0 else 'negative'} correlation. " +
+                                         f"This means changes in {corr['col1']} are strongly " +
+                                         f"{'associated' if corr['correlation'] > 0 else 'inversely associated'} " +
+                                         f"with changes in {corr['col2']}."
                         })
-            
+
+            # Overall Summary
+            key_findings = []
+            if numeric_cols:
+                key_findings.append(f"Analyzed {len(numeric_cols)} numerical features")
+            if categorical_cols:
+                key_findings.append(f"Analyzed {len(categorical_cols)} categorical features")
+            if strong_correlations:
+                key_findings.append(f"Found {len(strong_correlations)} strong correlations")
+
+            insights.append({
+                "title": "Overall Data Summary",
+                "description": f"{', '.join(key_findings)}. " +
+                              f"Dataset contains {total_rows} rows with {missing_percentage:.1f}% missing values overall."
+            })
+
             # Add recommendations based on analysis
             if missing_values > 0:
                 recommendations.append(
                     f"Consider handling {missing_values} missing values ({missing_percentage:.1f}% of total data)"
                 )
-            
+
             if duplicate_rows > 0:
                 recommendations.append(
                     f"Review {duplicate_rows} duplicate rows ({(duplicate_rows/total_rows*100):.1f}% of data)"
                 )
-            
+
+            # Add recommendations for next steps
+            recommendations.append(
+                "Consider feature engineering or transformations for highly skewed numerical variables"
+            )
+            if strong_correlations:
+                recommendations.append(
+                "Review highly correlated features to avoid multicollinearity in modeling"
+            )
+
             # Calculate categorical distributions
             categorical_distributions = {}
             for col in categorical_cols:
@@ -343,7 +467,8 @@ async def upload_file(file: UploadFile = File(...)):
                 "null_counts": null_counts,
                 "insights": insights,
                 "recommendations": recommendations,
-                "categorical_distributions": categorical_distributions
+                "categorical_distributions": categorical_distributions,
+                "raw_data": serialize_dataframe_dict(df.to_dict(orient='list'))
             }
             
             print("Analysis complete")

@@ -1,7 +1,17 @@
 {
   "mcpServers": {
-    "file": {
-      "command": "cat cursor.mdc"
+    "supabase": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--access-token",
+        "sbp_ed33e105069cd6b89225bb147e52225d589bffc8"
+      ],
+      "env": {
+        "SUPABASE_PROJECT_ID": "wjyacsyohzporyvenkqe",
+        "SUPABASE_PROJECT_REF": "wjyacsyohzporyvenkqe"
+      }
     }
   }
-}
+} 

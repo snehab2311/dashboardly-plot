@@ -23,7 +23,11 @@ import {
   FileDown,
   X,
   Sun,
-  Moon
+  Moon,
+  GitBranch,
+  Binoculars,
+  Activity,
+  LightbulbIcon
 } from 'lucide-react';
 import { BarChart as BarChartComponent, LineChart as LineChartComponent } from '@/components/ui/chart';
 import {
@@ -176,11 +180,32 @@ const EDAGenerator: React.FC = () => {
   const receivedFileData = location.state?.fileData || location.state?.analyzedData;
   const { theme, setTheme } = useTheme();
   
-  const [currentStep, setCurrentStep] = useState<'upload' | 'analyzing' | 'results'>('upload');
+  // Initialize state with localStorage data
+  const [currentStep, setCurrentStep] = useState<'upload' | 'analyzing' | 'results'>(() => {
+    const savedData = localStorage.getItem('edaData');
+    return savedData ? 'results' : 'upload';
+  });
   const [progress, setProgress] = useState(0);
   const [activeTab, setActiveTab] = useState('summary');
-  const [fileData, setFileData] = useState<FileData | null>(null);
-  const [fileName, setFileName] = useState<string>('');
+  const [fileData, setFileData] = useState<FileData | null>(() => {
+    try {
+      const savedData = localStorage.getItem('edaData');
+      if (savedData) {
+        console.log('Found saved EDA data in localStorage');
+        return JSON.parse(savedData);
+      }
+      console.log('No saved EDA data found in localStorage');
+      return null;
+    } catch (error) {
+      console.error('Error loading saved EDA data:', error);
+      return null;
+    }
+  });
+  const [fileName, setFileName] = useState<string>(() => {
+    const savedFileName = localStorage.getItem('edaFileName');
+    console.log('Loaded fileName from localStorage:', savedFileName);
+    return savedFileName || '';
+  });
   const [selectedXVar, setSelectedXVar] = useState<string>('');
   const [selectedYVar, setSelectedYVar] = useState<string>('');
   const [selectedDistributionVars, setSelectedDistributionVars] = useState<string[]>([]);
@@ -188,17 +213,97 @@ const EDAGenerator: React.FC = () => {
   const [showExportDialog, setShowExportDialog] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   
-  // Initialize with received file data if available
+  // Load data from localStorage on mount and when receivedFileData changes
   useEffect(() => {
+    console.log('Component mounted or receivedFileData changed');
+    
+    // First try to use receivedFileData
     if (receivedFileData) {
+      console.log('Using receivedFileData');
       setFileData(receivedFileData);
+      localStorage.setItem('edaData', JSON.stringify(receivedFileData));
+      
+      const newFileName = location.state?.fileName || '';
+      setFileName(newFileName);
+      localStorage.setItem('edaFileName', newFileName);
+      
       setCurrentStep('results');
       toast({
         title: "Data Loaded",
-        description: "Your previous analysis has been restored.",
+        description: "Your analysis data has been restored.",
       });
+      return;
+    }
+    
+    // If no receivedFileData, try loading from localStorage
+    try {
+      const savedData = localStorage.getItem('edaData');
+      const savedFileName = localStorage.getItem('edaFileName');
+      
+      if (savedData && savedFileName) {
+        console.log('Restoring data from localStorage');
+        const parsedData = JSON.parse(savedData);
+        setFileData(parsedData);
+        setFileName(savedFileName);
+        setCurrentStep('results');
+        toast({
+          title: "Data Restored",
+          description: "Your previous analysis has been loaded.",
+        });
+      }
+    } catch (error) {
+      console.error('Error restoring data:', error);
+      clearEDAData();
     }
   }, [receivedFileData]);
+
+  // Save data to localStorage whenever it changes
+  useEffect(() => {
+    console.log('fileData changed, saving to localStorage');
+    if (fileData) {
+      try {
+        localStorage.setItem('edaData', JSON.stringify(fileData));
+        setCurrentStep('results');
+      } catch (error) {
+        console.error('Error saving fileData to localStorage:', error);
+        toast({
+          title: "Warning",
+          description: "Could not save analysis data to browser storage.",
+          variant: "destructive",
+        });
+      }
+    }
+  }, [fileData]);
+
+  useEffect(() => {
+    console.log('fileName changed, saving to localStorage:', fileName);
+    if (fileName) {
+      localStorage.setItem('edaFileName', fileName);
+    }
+  }, [fileName]);
+
+  // Function to clear the EDA data
+  const clearEDAData = () => {
+    console.log('Clearing EDA data');
+    try {
+      localStorage.removeItem('edaData');
+      localStorage.removeItem('edaFileName');
+      setFileData(null);
+      setFileName('');
+      setCurrentStep('upload');
+      toast({
+        title: "Data Cleared",
+        description: "Your EDA data has been cleared.",
+      });
+    } catch (error) {
+      console.error('Error clearing data:', error);
+      toast({
+        title: "Error",
+        description: "Could not clear data completely.",
+        variant: "destructive",
+      });
+    }
+  };
   
   // Initialize selectedDistributionVars when fileData changes
   useEffect(() => {
@@ -227,7 +332,7 @@ const EDAGenerator: React.FC = () => {
 
       // Use environment variable for backend URL
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-      console.log('Backend URL:', backendUrl); // Add this line for debugging
+      console.log('Backend URL:', backendUrl);
       const response = await fetch(`${backendUrl}/upload-file/`, {
         method: 'POST',
         headers: {
@@ -244,6 +349,8 @@ const EDAGenerator: React.FC = () => {
 
       const data = await response.json();
       setFileData(data);
+      localStorage.setItem('edaData', JSON.stringify(data));
+      localStorage.setItem('edaFileName', file.name);
       
       setTimeout(() => {
         setCurrentStep('results');
@@ -894,23 +1001,35 @@ const EDAGenerator: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-[#7C3AED] tracking-tight">Exploratory Data Analysis</h1>
-          <p className="text-muted-foreground ">Upload your data to generate comprehensive insights and visualizations.</p>
+          <p className="text-muted-foreground">Upload your data to generate comprehensive insights and visualizations.</p>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon">
-              {theme === 'light' ? <Sun className="h-5 w-5 text-[#7C3AED]" /> : <Moon className="h-5 w-5" />}
+        <div className="flex items-center gap-2">
+          {fileData && (
+            <Button 
+              variant="outline" 
+              className="text-red-500 hover:text-red-600 hover:bg-red-50"
+              onClick={clearEDAData}
+            >
+              <X className="h-4 w-4 mr-2" />
+              Clear Data
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => setTheme('light')}>
-              <Sun className="mr-2 h-4 w-4" /> Light
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setTheme('dark')}>
-              <Moon className="mr-2 h-4 w-4" /> Dark
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                {theme === 'light' ? <Sun className="h-5 w-5 text-[#7C3AED]" /> : <Moon className="h-5 w-5" />}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setTheme('light')}>
+                <Sun className="mr-2 h-4 w-4" /> Light
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme('dark')}>
+                <Moon className="mr-2 h-4 w-4" /> Dark
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
       
       {currentStep === 'upload' && (
@@ -1832,32 +1951,114 @@ const EDAGenerator: React.FC = () => {
               <Card>
                 <CardHeader>
                   <CardTitle>Key Insights</CardTitle>
-                  <CardDescription>Important findings from your data</CardDescription>
+                  <CardDescription>Comprehensive analysis of your dataset</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    {fileData.insights.map((insight: any, index: number) => (
-                      <div key={index} className="flex items-start">
-                      <div className="bg-dashboardly-primary/20 p-2 rounded-md mr-3">
-                        <CheckCircle2 className="h-5 w-5 text-dashboardly-primary" />
-                      </div>
-                      <div>
-                          <h3 className="text-base font-medium">{insight.title}</h3>
-                        <p className="text-sm text-muted-foreground">
-                            {insight.description}
-                        </p>
-                      </div>
-                      </div>
-                    ))}
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-base font-medium mb-2">Recommendations</h3>
-                    <ul className="list-disc pl-6 space-y-2 text-sm">
-                      {fileData.recommendations.map((recommendation: string, index: number) => (
-                        <li key={index}>{recommendation}</li>
+                  {/* Overall Summary */}
+                  <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
+                    {fileData.insights
+                      .filter(insight => insight.title === "Overall Data Summary")
+                      .map((insight, index) => (
+                        <div key={index}>
+                          <h3 className="text-lg font-semibold text-purple-900 mb-2">Dataset Overview</h3>
+                          <p className="text-purple-800">{insight.description}</p>
+                        </div>
                       ))}
-                    </ul>
+                  </div>
+
+                  {/* Numerical Insights */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold border-b pb-2">Numerical Variables Analysis</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {fileData.insights
+                        .filter(insight => 
+                          insight.title.includes("Distribution Pattern") || 
+                          insight.title.includes("Outliers") ||
+                          insight.title.includes("Multiple Peaks")
+                        )
+                        .map((insight, index) => (
+                          <div key={index} className="bg-white p-4 rounded-lg border">
+                            <div className="flex items-start space-x-3">
+                              {insight.title.includes("Distribution") && (
+                                <LineChartIcon className="h-5 w-5 text-blue-500 mt-1" />
+                              )}
+                              {insight.title.includes("Outliers") && (
+                                <AlertCircle className="h-5 w-5 text-amber-500 mt-1" />
+                              )}
+                              {insight.title.includes("Multiple Peaks") && (
+                                <Activity className="h-5 w-5 text-green-500 mt-1" />
+                              )}
+                              <div>
+                                <h4 className="font-medium text-gray-900">{insight.title}</h4>
+                                <p className="text-sm text-gray-600 mt-1">{insight.description}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+
+                  {/* Categorical Insights */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold border-b pb-2">Categorical Variables Analysis</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {fileData.insights
+                        .filter(insight => 
+                          insight.title.includes("Category Distribution") || 
+                          insight.title.includes("Rare Categories")
+                        )
+                        .map((insight, index) => (
+                          <div key={index} className="bg-white p-4 rounded-lg border">
+                            <div className="flex items-start space-x-3">
+                              {insight.title.includes("Distribution") && (
+                                <PieChart className="h-5 w-5 text-indigo-500 mt-1" />
+                              )}
+                              {insight.title.includes("Rare") && (
+                                <Binoculars className="h-5 w-5 text-purple-500 mt-1" />
+                              )}
+                              <div>
+                                <h4 className="font-medium text-gray-900">{insight.title}</h4>
+                                <p className="text-sm text-gray-600 mt-1">{insight.description}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+
+                  {/* Correlation Insights */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold border-b pb-2">Correlation Analysis</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {fileData.insights
+                        .filter(insight => insight.title.includes("Strong Correlation"))
+                        .map((insight, index) => (
+                          <div key={index} className="bg-white p-4 rounded-lg border">
+                            <div className="flex items-start space-x-3">
+                              <GitBranch className="h-5 w-5 text-rose-500 mt-1" />
+                              <div>
+                                <h4 className="font-medium text-gray-900">{insight.title}</h4>
+                                <p className="text-sm text-gray-600 mt-1">{insight.description}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+
+                  {/* Recommendations */}
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold border-b pb-2">Recommendations</h3>
+                    <div className="bg-green-50 rounded-lg p-4 border border-green-100">
+                      <ul className="space-y-3">
+                        {fileData.recommendations.map((recommendation, index) => (
+                          <li key={index} className="flex items-start space-x-3">
+                            <LightbulbIcon className="h-5 w-5 text-green-600 mt-1" />
+                            <span className="text-green-800">{recommendation}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

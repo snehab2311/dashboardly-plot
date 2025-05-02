@@ -34,7 +34,6 @@ const MyDashboards: React.FC = () => {
   };
 
   const [dashboards, setDashboards] = useState(getInitialDashboards());
-  const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('updated');
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [shareEmail, setShareEmail] = useState('');
@@ -47,12 +46,7 @@ const MyDashboards: React.FC = () => {
     localStorage.setItem('dashboards', JSON.stringify(dashboards));
   }, [dashboards]);
   
-  const filteredDashboards = dashboards.filter(dashboard => 
-    dashboard.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    dashboard.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  
-  const sortedDashboards = [...filteredDashboards].sort((a, b) => {
+  const sortedDashboards = [...dashboards].sort((a, b) => {
     switch (sortBy) {
       case 'title':
         return a.title.localeCompare(b.title);
@@ -82,22 +76,6 @@ const MyDashboards: React.FC = () => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  };
-  
-  const handleCopyLink = async (dashboardId: string) => {
-    const dashboardLink = `${window.location.origin}/kpi-builder?id=${dashboardId}`;
-    await navigator.clipboard.writeText(dashboardLink);
-    toast({ title: 'Link Copied', description: 'Dashboard link copied to clipboard.' });
-  };
-  
-  const handleSendEmail = async () => {
-    setIsSending(true);
-    setTimeout(() => {
-      setIsSending(false);
-      setShowShareDialog(false);
-      setShareEmail('');
-      toast({ title: 'Email Sent', description: 'Dashboard link sent via email.' });
-    }, 1200);
   };
   
   return (
@@ -132,16 +110,6 @@ const MyDashboards: React.FC = () => {
       </div>
       
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
-        <div className="relative w-full md:w-96">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search"
-            className="pl-9"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        
         <div className="flex items-center gap-2">
           <Select value={sortBy} onValueChange={setSortBy}>
             <SelectTrigger className="w-40">
@@ -233,10 +201,6 @@ const MyDashboards: React.FC = () => {
                           Edit
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { setShareDashboard(dashboard); setShowShareDialog(true); }}>
-                        <Share2 className="h-4 w-4 mr-2" />
-                        Share
-                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem 
                         className="text-red-600 focus:text-red-600"
@@ -312,10 +276,6 @@ const MyDashboards: React.FC = () => {
                             <Settings className="h-4 w-4 mr-2" />
                             Edit
                           </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => { setShareDashboard(dashboard); setShowShareDialog(true); }}>
-                          <Share2 className="h-4 w-4 mr-2" />
-                          Share
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem 
@@ -397,10 +357,6 @@ const MyDashboards: React.FC = () => {
                             Edit
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => { setShareDashboard(dashboard); setShowShareDialog(true); }}>
-                          <Share2 className="h-4 w-4 mr-2" />
-                          Share
-                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem 
                           className="text-red-600 focus:text-red-600"
@@ -420,37 +376,6 @@ const MyDashboards: React.FC = () => {
           </div>
         </TabsContent>
       </Tabs>
-      {/* Share Dialog */}
-      {showShareDialog && shareDashboard && (
-        <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Share Dashboard</DialogTitle>
-              <DialogDescription>
-                Share this dashboard with others by copying the link or sending it via email.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Input value={`${window.location.origin}/kpi-builder?id=${shareDashboard.id}`} readOnly className="flex-1" />
-                <Button onClick={() => handleCopyLink(shareDashboard.id)} variant="secondary">Copy Link</Button>
-              </div>
-              <div className="flex items-center gap-2">
-                <Input
-                  type="email"
-                  placeholder="Recipient's email"
-                  value={shareEmail}
-                  onChange={e => setShareEmail(e.target.value)}
-                  className="flex-1"
-                />
-                <Button onClick={handleSendEmail} disabled={!shareEmail || isSending}>
-                  {isSending ? 'Sending...' : 'Send via Email'}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
     </div>
   );
 };

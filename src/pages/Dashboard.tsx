@@ -97,9 +97,6 @@ const Dashboard: React.FC = () => {
                       Start exploring
                     </Button>
                   </Link>
-                  <Button size="lg" variant="outline" className="text-[black] border-[#F5F3FF] hover:bg-[#4C1D95]/10">
-                    Demo
-                  </Button>
                 </div>
               </div>
               

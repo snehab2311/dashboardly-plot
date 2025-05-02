@@ -469,28 +469,9 @@ const KPIBuilder: React.FC = () => {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [dashboardName, setDashboardName] = useState('');
   const chartAreaRef = useRef<HTMLDivElement>(null);
-  const [showShareDialog, setShowShareDialog] = useState(false);
-  const [shareEmail, setShareEmail] = useState('');
-  const [isSending, setIsSending] = useState(false);
   
   const dashboardLink = `${window.location.origin}/kpi-builder?id=${dashboardId}`;
 
-  const handleCopyLink = async () => {
-    await navigator.clipboard.writeText(dashboardLink);
-    toast({ title: 'Link Copied', description: 'Dashboard link copied to clipboard.' });
-  };
-
-  const handleSendEmail = async () => {
-    setIsSending(true);
-    // Placeholder: Integrate with EmailJS or backend API here
-    setTimeout(() => {
-      setIsSending(false);
-      setShowShareDialog(false);
-      setShareEmail('');
-      toast({ title: 'Email Sent', description: 'Dashboard link sent via email.' });
-    }, 1200);
-  };
-  
   // Load dashboard from localStorage if id is present
   useEffect(() => {
     if (dashboardId) {
@@ -1050,12 +1031,9 @@ const KPIBuilder: React.FC = () => {
   const updatePieChartData = (variable: string, widget: UserChartWidget) => {
     // Step 1: Initial data check
     console.log('Step 1 - Initial Data Check:', {
-      hasRawData: !!analyzedData?.raw_data,
-      rawDataLength: analyzedData?.raw_data?.length,
+      hasCategoricalDist: !!analyzedData?.categorical_distributions?.[variable],
       variable,
-      firstFewRows: analyzedData?.raw_data?.slice(0, 3).map(row => ({
-        [variable]: row[variable]
-      }))
+      stats: analyzedData?.describe?.[variable]
     });
 
     if (!analyzedData?.describe) {
@@ -1076,8 +1054,7 @@ const KPIBuilder: React.FC = () => {
       uniqueValues: stats.unique,
       topCategory: stats.top,
       topFrequency: stats.freq,
-      hasCategoricalDist: !!analyzedData.categorical_distributions?.[variable],
-      hasRawData: !!analyzedData.raw_data
+      hasCategoricalDist: !!analyzedData.categorical_distributions?.[variable]
     });
 
     // For pie charts, we need to get the distribution of categories
@@ -1183,32 +1160,6 @@ const KPIBuilder: React.FC = () => {
       return;
     }
 
-    const totalCount = values.reduce((sum, count) => sum + count, 0);
-
-    // Generate colors for all categories
-    const colors = [
-      'rgba(139, 92, 246, 0.8)',   // Purple
-      'rgba(59, 130, 246, 0.8)',   // Blue
-      'rgba(16, 185, 129, 0.8)',   // Green
-      'rgba(239, 68, 68, 0.8)',    // Red
-      'rgba(245, 158, 11, 0.8)',   // Yellow
-      'rgba(236, 72, 153, 0.8)',   // Pink
-      'rgba(107, 114, 128, 0.8)',  // Gray
-      'rgba(167, 139, 250, 0.8)',  // Light Purple
-      'rgba(14, 165, 233, 0.8)',   // Sky Blue
-      'rgba(234, 88, 12, 0.8)',    // Orange
-      'rgba(22, 163, 74, 0.8)',    // Emerald
-      'rgba(217, 70, 239, 0.8)',   // Fuchsia
-      'rgba(251, 146, 60, 0.8)',   // Light Orange
-      'rgba(124, 58, 237, 0.8)',   // Violet
-      'rgba(6, 182, 212, 0.8)',    // Cyan
-      // Generate more colors dynamically if needed
-      ...Array.from({ length: Math.max(0, labels.length - 15) }, (_, i) => {
-        const hue = (i * 20) % 360;
-        return `hsla(${hue}, 70%, 50%, 0.8)`;
-      })
-    ];
-
     // Create updated widget
     const updatedWidget: UserChartWidget = {
       ...widget,
@@ -1275,14 +1226,6 @@ const KPIBuilder: React.FC = () => {
       isDefault: false,
       dateAdded: widget.dateAdded
     };
-
-    // Log final widget data
-    console.log('Step 5 - Final Widget Data:', {
-      title: updatedWidget.title,
-      labels: updatedWidget.data.labels,
-      values: updatedWidget.data.datasets[0].data,
-      totalCategories: updatedWidget.data.labels.length
-    });
 
     // Update widgets state
     setUserWidgets(prevWidgets => 
@@ -2065,9 +2008,6 @@ const KPIBuilder: React.FC = () => {
                   Go to Saved Dashboards
                 </Button>
               </Link>
-              <Button onClick={() => setShowShareDialog(true)} className="bg-dashboardly-primary hover:bg-dashboardly-dark text-white font-normal text-xs px-2 py-1 ml-1">
-                <Copy className="h-3 w-3 mr-1" /> Share
-              </Button>
             </>
           )}
         </div>
@@ -2083,7 +2023,10 @@ const KPIBuilder: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {/* Remove theme selector from here since it's now in the header */}
+            <div className="flex items-center gap-2 text-sm text-purple-700 bg-purple-50 p-3 rounded-lg">
+              <InfoIcon className="h-4 w-4 text-purple-500" />
+              <p>Save your dashboard to keep updating and editing your work</p>
+            </div>
           </CardContent>
         </Card>
 
@@ -2227,7 +2170,7 @@ const KPIBuilder: React.FC = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <Table className="h-4 w-4" />
-                        <span>Data Tables</span>
+                        <span>Others</span>
                       </div>
                     </div>
                   </div>
@@ -2411,25 +2354,27 @@ const KPIBuilder: React.FC = () => {
                       <Button
                         variant="outline"
                         className={cn(
-                          "flex flex-col h-24 gap-2 items-center justify-center",
+                          "flex flex-col h-24 gap-2 items-center justify-center opacity-50 cursor-not-allowed",
                           selectedChartType === 'kpi' && "border-dashboardly-primary bg-dashboardly-primary/5"
                         )}
                         onClick={() => setSelectedChartType('kpi')}
+                        disabled
                       >
                         <Gauge className="h-6 w-6" />
-                        <span className="text-xs">KPI Card</span>
+                        <span className="text-xs">More types coming soon</span>
                       </Button>
                       
                       <Button
                         variant="outline"
                         className={cn(
-                          "flex flex-col h-24 gap-2 items-center justify-center",
+                          "flex flex-col h-24 gap-2 items-center justify-center opacity-50 cursor-not-allowed",
                           selectedChartType === 'table' && "border-dashboardly-primary bg-dashboardly-primary/5"
                         )}
                         onClick={() => setSelectedChartType('table')}
+                        disabled
                       >
                         <Table className="h-6 w-6" />
-                        <span className="text-xs">Data Table</span>
+                        <span className="text-xs">More types coming soon</span>
                       </Button>
                     </div>
                     
@@ -2496,34 +2441,6 @@ const KPIBuilder: React.FC = () => {
                 {isSaving ? 'Saving...' : 'Save Dashboard'}
               </Button>
             )}
-          </div>
-        </DialogContent>
-      </Dialog>
-      <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Share Dashboard</DialogTitle>
-            <DialogDescription>
-              Share this dashboard with others by copying the link or sending it via email.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Input value={dashboardLink} readOnly className="flex-1" />
-              <Button onClick={handleCopyLink} variant="secondary">Copy Link</Button>
-            </div>
-            <div className="flex items-center gap-2">
-              <Input
-                type="email"
-                placeholder="Recipient's email"
-                value={shareEmail}
-                onChange={e => setShareEmail(e.target.value)}
-                className="flex-1"
-              />
-              <Button onClick={handleSendEmail} disabled={!shareEmail || isSending}>
-                {isSending ? 'Sending...' : 'Send via Email'}
-              </Button>
-            </div>
           </div>
         </DialogContent>
       </Dialog>
